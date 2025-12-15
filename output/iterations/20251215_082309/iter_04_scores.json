@@ -1,0 +1,16 @@
+{
+  "iteration": 4,
+  "overall_score": 0.8933367624685802,
+  "stylometric_score": 0.7144558748952675,
+  "theological_score": 1.0,
+  "metaphorical_score": 0.9,
+  "transformation_score": 1.0,
+  "rhetorical_score": 1.0,
+  "coherence_score": 1.0,
+  "language_score": 1.0,
+  "flow_score": 1.0,
+  "humor_score": 0.7,
+  "sdt_score": 1.0,
+  "is_best": true,
+  "sermon_length": 16767
+}

@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jüngel Preken</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --text-color: #e0e0e0;
+            --primary-color: #d4b886;
+            --secondary-color: #333333;
+            --hover-bg-color: #2a2a2a;
+            --font-body: 'Cormorant Garamond', serif;
+            --font-ui: 'Lato', sans-serif;
+        }
+
+        body.light-mode {
+            --bg-color: #f5f5f5;
+            --text-color: #1a1a1a;
+            --primary-color: #8c6f42;
+            --secondary-color: #e0e0e0;
+            --hover-bg-color: #cccccc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #sidebar {
+            width: 350px;
+            flex-shrink: 0;
+            background-color: var(--secondary-color);
+            border-right: 1px solid #444;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s;
+        }
+        body.light-mode #sidebar {
+            border-right: 1px solid #ccc;
+        }
+
+
+        #sidebar h1 {
+            font-family: var(--font-body);
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #555;
+            padding-bottom: 0.5rem;
+        }
+        body.light-mode #sidebar h1 {
+            border-bottom: 1px solid #bbb;
+        }
+
+        #controls {
+            padding: 1rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            border-bottom: 1px solid #555;
+            margin-bottom: 1rem;
+        }
+        body.light-mode #controls {
+            border-bottom: 1px solid #bbb;
+        }
+
+        #controls button {
+            width: 100%;
+            padding: 0.6rem;
+            background-color: #444;
+            color: var(--text-color);
+            border: 1px solid #555;
+            font-family: var(--font-ui);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        #controls button:hover {
+            background-color: #555;
+        }
+        
+        body.light-mode #controls button {
+            background-color: #ccc;
+            color: var(--text-color);
+            border: 1px solid #bbb;
+        }
+
+        body.light-mode #controls button:hover {
+            background-color: #bbb;
+        }
+
+        #sermon-list-container {
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        #sermon-list-container h2 {
+            font-family: var(--font-body);
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid #555;
+        }
+        #sermon-list-container h2:first-of-type {
+            margin-top: 0;
+        }
+        body.light-mode #sermon-list-container h2 {
+            border-bottom-color: #bbb;
+        }
+
+        .sermon-list {
+            list-style: none;
+            margin-top: 0.5rem;
+        }
+
+        .sermon-list li {
+            padding: 0.8rem 0.5rem;
+            cursor: pointer;
+            border-bottom: 1px solid #444;
+            transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            font-size: 0.95rem;
+        }
+        body.light-mode .sermon-list li {
+            border-bottom: 1px solid #ccc;
+        }
+
+        .sermon-list li:hover {
+            background-color: var(--hover-bg-color);
+        }
+        
+        .sermon-list li.active {
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            font-weight: bold;
+        }
+        body.light-mode .sermon-list li.active {
+             color: #fff;
+        }
+
+        #content {
+            flex-grow: 1;
+            padding: 2rem 3rem;
+            overflow-y: auto;
+        }
+
+        #sermon-title {
+            font-family: var(--font-body);
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--primary-color);
+            line-height: 1.3;
+        }
+
+        #sermon-text {
+            font-family: var(--font-body);
+            font-size: 1.3rem;
+            line-height: 1.8;
+            max-width: 800px;
+        }
+
+        #sermon-text p {
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        #sermon-text h2 {
+            font-family: var(--font-ui);
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-top: 2.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #555;
+            padding-bottom: 0.5rem;
+        }
+        body.light-mode #sermon-text h2 {
+            border-bottom-color: #bbb;
+        }
+
+        #sermon-text h3 {
+            font-family: var(--font-ui);
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        #sermon-text ul, #sermon-text ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        #sermon-text li {
+            margin-bottom: 0.75rem;
+            line-height: 1.7;
+        }
+
+        #sermon-text strong {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        #sermon-text li p {
+            margin-bottom: 0;
+        }
+
+        /* Info button */
+        #info-btn {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: var(--bg-color);
+            border: none;
+            font-family: var(--font-body);
+            font-size: 1.4rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            z-index: 100;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        #info-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        /* Modal overlay */
+        #modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        #modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal content */
+        #modal {
+            background-color: var(--bg-color);
+            border: 1px solid var(--primary-color);
+            border-radius: 8px;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 2rem 2.5rem;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+        #modal-overlay.visible #modal {
+            transform: scale(1);
+        }
+
+        #modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        #modal-close:hover {
+            opacity: 1;
+        }
+
+        #modal h2 {
+            font-family: var(--font-body);
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        #modal h3 {
+            font-family: var(--font-body);
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        #modal p {
+            font-family: var(--font-body);
+            font-size: 1.15rem;
+            line-height: 1.7;
+            margin-bottom: 1rem;
+        }
+
+        #modal em {
+            font-style: italic;
+            color: var(--primary-color);
+        }
+
+        /* Hamburger menu button */
+        #menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary-color);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 1001;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        #menu-toggle span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background-color: var(--bg-color);
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        #menu-toggle.active span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        #menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+        #menu-toggle.active span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        /* Sidebar overlay for mobile */
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            #menu-toggle {
+                display: flex;
+            }
+
+            #sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                width: 300px;
+                max-width: 85vw;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out;
+                z-index: 1000;
+            }
+
+            #sidebar.open {
+                transform: translateX(0);
+            }
+
+            #sidebar-overlay.visible {
+                display: block;
+            }
+
+            #content {
+                padding: 1rem;
+                padding-top: 4rem;
+            }
+
+            #sermon-title {
+                font-size: 1.8rem;
+            }
+
+            #sermon-text {
+                font-size: 1.1rem;
+            }
+
+            #info-btn {
+                top: 1rem;
+                right: 1rem;
+            }
+
+            #modal {
+                margin: 0.75rem;
+                padding: 1.25rem;
+                padding-top: 2.5rem;
+                max-height: 92vh;
+                width: calc(100% - 1.5rem);
+                max-width: none;
+            }
+
+            #modal-close {
+                top: 0.5rem;
+                right: 0.5rem;
+                font-size: 2rem;
+                padding: 0.5rem;
+            }
+
+            #modal h2 {
+                font-size: 1.4rem;
+                margin-bottom: 1rem;
+            }
+
+            #modal h3 {
+                font-size: 1.2rem;
+                margin-top: 1.25rem;
+            }
+
+            #modal p {
+                font-size: 1rem;
+                line-height: 1.6;
+            }
+        }
+    </style>
+</head>
+<body class="light-mode">
+
+    <button id="menu-toggle" title="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <div id="sidebar-overlay"></div>
+    <button id="info-btn" title="Over deze website">i</button>
+
+    <div id="modal-overlay">
+        <div id="modal">
+            <button id="modal-close">&times;</button>
+            <h2>Inleiding</h2>
+            <p>Voorgangers lezen preken van vakgenoten ter lering en vermaak. Ondanks verschillen in context, theologie en homiletische benadering valt er veel op te steken van de verbeeldingskracht die het schrijven van een preek vereist en daarin zichtbaar wordt.</p>
+            <p>Een beperking daarbij is dat van de meeste predikanten slechts preken over een beperkt deel van de Schrift beschikbaar zijn. Toch rijst soms de vraag: <em>‘Hoe zou deze predikant over een andere tekst hebben gepreekt?’</em></p>
+
+            <h3>Het experiment</h3>
+            <p>Deze website presenteert een experimentele, generatieve methode om deze vraag te verkennen. De basis van het experiment wordt gevormd door 32 preken van een Duitse predikant (Eberhard Jüngel (1934-2021)), handmatig en vrij letterlijk vertaald naar het Nederlands. Deze preken behandelen nieuwtestamentische teksten en zijn oorspronkelijk verschenen in de zevendelige reeks <em>Predigten</em> (Radius-Verlag GmbH, 2013) en zijn helaas niet digitaal beschikbaar.</p>
+            <p>Fragmenten uit deze vertaalde preken, gecombineerd met een zorgvuldig samengesteld set homiletische instructies, maken het mogelijk om deze predikant – postuum en bij wijze van spreken – andere teksten te laten ‘bepreken’ met (hopelijk) iets van de oorspronkelijke verbeelding. Of dit bruikbaar inspiratiemateriaal oplevert, is aan de lezer om te beoordelen. Onder <em>‘Mogelijke preken’</em> zijn voorbeelden te vinden.</p>
+
+            <h3>Verantwoording en uitbreiding</h3>
+            <p>Dit experiment beoogt dus om te onderzoeken in hoeverre generatieve taalmodellen homiletische patronen kunnen herkennen en toepassen. De gegenereerde teksten dienen, uiteraard, als uitgangspunt voor eigen reflectie, niet als kant-en-klare preken.</p>
+            <p>Mocht deze generatieve methode vruchtbaar blijken, dan is uitbreiding naar andere predikanten (bijv. Noordmans, Sölle of Schillebeeckx) denkbaar. Daarvoor is nodig: een vergelijkbaar instructieset, een verzameling gedigitaliseerde preken en een generatief taalmodel.</p>
+            <p>De code om dit experiment te draaien is beschikbaar via: <a href="https://github.com/wmotte/jungel" target="_blank" rel="noopener noreferrer">github.com/wmotte/jungel</a></p>
+        </div>
+    </div>
+
+    <nav id="sidebar">
+        <h1>Preken</h1>
+        <div id="controls">
+            <button id="theme-toggle">Dark Mode</button>
+            <button id="show-instructions-btn">Toon instructies</button>
+        </div>
+        <div id="sermon-list-container">
+            <h2>Mogelijke preken</h2>
+            <ul id="mogelijke-preken-list" class="sermon-list"></ul>
+            <h2>Daadwerkelijke preken</h2>
+            <ul id="daadwerkelijke-preken-list" class="sermon-list"></ul>
+        </div>
+    </nav>
+
+    <main id="content">
+        <h2 id="sermon-title">Laden...</h2>
+        <article id="sermon-text"></article>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- ELEMENTS ---
+            const sermonListContainer = document.getElementById('sermon-list-container');
+            const mogelijkePrekenList = document.getElementById('mogelijke-preken-list');
+            const daadwerkelijkePrekenList = document.getElementById('daadwerkelijke-preken-list');
+            const sermonTitle = document.getElementById('sermon-title');
+            const sermonText = document.getElementById('sermon-text');
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const showInstructionsBtn = document.getElementById('show-instructions-btn');
+            const infoBtn = document.getElementById('info-btn');
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalClose = document.getElementById('modal-close');
+            const menuToggle = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            // --- DATA ---
+            const allSermonFiles = [
+                "mogelijk_01_nl.json", "mogelijk_02_nl.json", "mogelijk_03_nl.json", 
+                "mogelijk_04_nl.json", "mogelijk_05_nl.json", "mogelijk_06_nl.json",
+                "paulus_01_nl.json", "paulus_02_nl.json", "paulus_03_nl.json", 
+                "paulus_04_nl.json", "paulus_05_nl.json", "paulus_06_nl.json", 
+                "paulus_07_nl.json", "paulus_08_nl.json", "paulus_09_nl.json", 
+                "paulus_10_nl.json", "paulus_11_nl.json", "paulus_12_nl.json", 
+                "paulus_13_nl.json", "paulus_14_nl.json", "paulus_15_nl.json", 
+                "paulus_16_nl.json", "paulus_17_nl.json", "paulus_18_nl.json", 
+                "preek_01_nl.json", "preek_02_nl.json", "preek_03_nl.json", 
+                "preek_04_nl.json", "preek_05_nl.json", "preek_06_nl.json", 
+                "preek_07_nl.json", "preek_08_nl.json", "preek_09_nl.json", 
+                "preek_10_nl.json", "preek_11_nl.json", "preek_12_nl.json", 
+                "preek_13_nl.json", "preek_14_nl.json"
+            ];
+            const mogelijkFiles = allSermonFiles.filter(f => f.startsWith('mogelijk_'));
+            const daadwerkelijkeFiles = allSermonFiles.filter(f => f.startsWith('preek_') || f.startsWith('paulus_'));
+
+
+            // --- FUNCTIONS ---
+
+            const BIBLE_BOOK_ORDER = [
+                // Oude Testament
+                "Genesis", "Exodus", "Leviticus", "Numeri", "Deuteronomium",
+                "Jozua", "Richteren", "Ruth", "1 Samuel", "2 Samuel",
+                "1 Koningen", "2 Koningen", "1 Kronieken", "2 Kronieken",
+                "Ezra", "Nehemia", "Ester", "Job", "Psalmen", "Spreuken",
+                "Prediker", "Hooglied", "Jesaja", "Jeremia", "Klaagliederen",
+                "Ezechiël", "Daniël", "Hosea", "Joël", "Amos", "Obadja",
+                "Jona", "Micha", "Nahum", "Habakuk", "Sefanja", "Haggaï",
+                "Zacharia", "Maleachi",
+                // Nieuwe Testament
+                "Matteüs", "Marcus", "Lucas", "Johannes", "Handelingen", "Romeinen",
+                "1 Korintiërs", "2 Korintiërs", "Galaten", "Efeze", "Filippenzen",
+                "Kolossenzen", "1 Tessalonicenzen", "2 Tessalonicenzen", "1 Timoteüs",
+                "2 Timoteüs", "Titus", "Filemon", "Hebreeën", "Jakobus", "1 Petrus",
+                "2 Petrus", "1 Johannes", "2 Johannes", "3 Johannes", "Judas", "Openbaring"
+            ];
+
+            function normalizeBookName(bookName) {
+                let normalized = bookName.trim().replace(/\.$/, ''); // remove trailing dot
+                normalized = normalized.replace("Handelingen der Apostelen", "Handelingen");
+                normalized = normalized.replace(/Korinthe/g, "Korintiërs");
+                normalized = normalized.replace("Mattëus", "Matteüs");
+                normalized = normalized.replace("Matthëus", "Matteüs");
+                normalized = normalized.replace("Mattheüs", "Matteüs");
+                normalized = normalized.replace("Markus", "Marcus");  // Duitse → Nederlandse spelling
+                normalized = normalized.replace("Lukas", "Lucas");    // Duitse → Nederlandse spelling
+                return normalized;
+            }
+
+            function parseScripture(scripture) {
+                if (!scripture) return null;
+                let s = scripture.trim();
+                
+                // Find the last space before the first number, which usually separates book and chapter
+                const match = s.match(/^(.*?)\s+(\d+.*)$/);
+                if (!match) {
+                    // Fallback for scripture like "1XXX 1:1"
+                    const fallbackMatch = s.match(/^(.+?)\s(\d+):(\d+.*)/);
+                    if (!fallbackMatch) {
+                        console.warn(`Could not parse scripture structure: ${s}`);
+                        return null;
+                    }
+                    const book = normalizeBookName(fallbackMatch[1]);
+                    const chapter = parseInt(fallbackMatch[2], 10);
+                    const verse = parseInt(fallbackMatch[3], 10);
+                    return { book, chapter, verse };
+                }
+                
+                let book = normalizeBookName(match[1]);
+                let chapterAndVerse = match[2].replace(/\s/g, ''); // "5: 43-48" -> "5:43-48"
+                
+                const parts = chapterAndVerse.match(/^(\d+):(\d+.*)/);
+                if (!parts) {
+                    console.warn(`Could not parse chapter/verse: ${chapterAndVerse}`);
+                    return null;
+                }
+                
+                const chapter = parseInt(parts[1], 10);
+                const verse = parseInt(parts[2], 10);
+                
+                return { book, chapter, verse };
+            }
+
+            function compareScriptures(a, b) {
+                const parsedA = parseScripture(a.title);
+                const parsedB = parseScripture(b.title);
+
+                if (!parsedA || !parsedB) return 0; // Don't sort if parsing fails
+
+                const bookIndexA = BIBLE_BOOK_ORDER.indexOf(parsedA.book);
+                const bookIndexB = BIBLE_BOOK_ORDER.indexOf(parsedB.book);
+
+                if (bookIndexA !== bookIndexB) {
+                    if (bookIndexA === -1) return 1;
+                    if (bookIndexB === -1) return -1;
+                    return bookIndexA - bookIndexB;
+                }
+
+                if (parsedA.chapter !== parsedB.chapter) {
+                    return parsedA.chapter - parsedB.chapter;
+                }
+
+                return parsedA.verse - parsedB.verse;
+            }
+
+            function replaceQuotes(text) {
+                // Process opening double quotes after space, start of line, or colon.
+                // This ensures a space after a colon if it's missing.
+                text = text.replace(/:\"/g, ': \u201C');
+                text = text.replace(/(^|\s)\"/g, '$1\u201C');
+                
+                // Any remaining double quotes are closing ones.
+                text = text.replace(/\"/g, '\u201D');
+
+                // Process opening single quotes after space, start of line, or colon.
+                text = text.replace(/:'/g, ': \u2018');
+                text = text.replace(/(^|\s)'/g, '$1\u2018');
+
+                // Any remaining single quotes are closing ones (or apostrophes).
+                text = text.replace(/'/g, '\u2019');
+                
+                return text;
+            }
+
+            function displaySermon(data) {
+                if (!data || !data.tekst || !data.schriftgedeelte) {
+                    sermonTitle.textContent = 'Ongeldige Data';
+                    sermonText.innerHTML = '<p>De verstrekte data is niet in het juiste formaat.</p>';
+                    return;
+                }
+                sermonTitle.textContent = data.schriftgedeelte;
+                const formattedText = replaceQuotes(data.tekst);
+                const paragraphs = formattedText.split('\n\n').map(p => p.trim());
+                sermonText.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+            }
+
+            async function loadSermon(fileName) {
+                try {
+                    const response = await fetch(fileName);
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    
+                    const data = await response.json();
+                    displaySermon(data);
+                    
+                    const listItems = sermonListContainer.querySelectorAll('li');
+                    listItems.forEach(item => {
+                        item.classList.toggle('active', item.dataset.file === fileName);
+                    });
+
+                } catch (error) {
+                    sermonTitle.textContent = 'Fout bij laden';
+                    sermonText.textContent = `Kon de preek '${fileName}' niet laden.`;
+                    console.error('Error loading sermon:', error);
+                }
+            }
+            
+            // --- MODAL FUNCTIONS ---
+            function showModal() {
+                modalOverlay.classList.add('visible');
+            }
+
+            function hideModal() {
+                modalOverlay.classList.remove('visible');
+            }
+
+            // --- EVENT LISTENERS ---
+
+            // --- MOBILE MENU FUNCTIONS ---
+            function openSidebar() {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('visible');
+                menuToggle.classList.add('active');
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('visible');
+                menuToggle.classList.remove('active');
+            }
+
+            // Mobile menu event listeners
+            menuToggle.addEventListener('click', () => {
+                if (sidebar.classList.contains('open')) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            });
+            sidebarOverlay.addEventListener('click', closeSidebar);
+
+            // Modal event listeners
+            infoBtn.addEventListener('click', showModal);
+            modalClose.addEventListener('click', hideModal);
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) hideModal();
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') hideModal();
+
+                // Arrow key navigation for sermon list
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const allItems = sermonListContainer.querySelectorAll('li[data-file]');
+                    if (allItems.length === 0) return;
+
+                    const activeItem = sermonListContainer.querySelector('li.active');
+                    let currentIndex = -1;
+
+                    if (activeItem) {
+                        allItems.forEach((item, index) => {
+                            if (item === activeItem) currentIndex = index;
+                        });
+                    }
+
+                    let newIndex;
+                    if (e.key === 'ArrowUp') {
+                        newIndex = currentIndex > 0 ? currentIndex - 1 : allItems.length - 1;
+                    } else {
+                        newIndex = currentIndex < allItems.length - 1 ? currentIndex + 1 : 0;
+                    }
+
+                    const newItem = allItems[newIndex];
+                    if (newItem && newItem.dataset.file) {
+                        loadSermon(newItem.dataset.file);
+                        newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }
+            });
+
+            themeToggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('light-mode');
+                let theme = 'dark';
+                if (document.body.classList.contains('light-mode')) {
+                    theme = 'light';
+                    themeToggleBtn.textContent = 'Dark Mode';
+                } else {
+                    themeToggleBtn.textContent = 'Light Mode';
+                }
+                localStorage.setItem('theme', theme);
+            });
+
+            // Removed loadCustomBtn and fileInput event listeners
+
+            showInstructionsBtn.addEventListener('click', async () => {
+                try {
+                    const response = await fetch('prompt.md');
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    const markdownText = await response.text();
+                    
+                    // Convert Markdown to HTML
+                    const htmlContent = marked.parse(markdownText); // Use marked.js
+                    
+                    sermonTitle.textContent = 'Instructies';
+                    sermonText.innerHTML = htmlContent;
+
+                    // Clear active state from sermon list items
+                    sermonListContainer.querySelectorAll('li').forEach(item => item.classList.remove('active'));
+
+                } catch (error) {
+                    sermonTitle.textContent = 'Fout bij laden instructies';
+                    sermonText.textContent = `Kon de instructies niet laden: ${error.message}`;
+                    console.error('Error loading instructions:', error);
+                }
+            });
+
+            sermonListContainer.addEventListener('click', (event) => {
+                if (event.target && event.target.nodeName === "LI") {
+                    loadSermon(event.target.dataset.file);
+                    // Close sidebar on mobile after selecting a sermon
+                    if (window.innerWidth <= 768) {
+                        closeSidebar();
+                    }
+                }
+            });
+
+            // --- INITIALIZATION ---
+
+            async function initialize() {
+                // 1. Set theme based on localStorage, default is light
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
+                    document.body.classList.remove('light-mode');
+                    themeToggleBtn.textContent = 'Light Mode';
+                } else {
+                    document.body.classList.add('light-mode');
+                    themeToggleBtn.textContent = 'Dark Mode';
+                }
+
+                // 2. Show intro modal on first visit
+                const hasVisited = localStorage.getItem('hasVisited');
+                if (!hasVisited) {
+                    showModal();
+                    localStorage.setItem('hasVisited', 'true');
+                }
+
+                // 3. Populate lists
+                const populateList = async (files, listElement) => {
+                    if (!files || files.length === 0) {
+                        listElement.innerHTML = `<li>Geen preken gevonden</li>`;
+                        return [];
+                    }
+                    const fetchPromises = files.map(file => 
+                        fetch(file)
+                            .then(res => res.json())
+                            .then(data => ({ file, title: data.schriftgedeelte }))
+                            .catch(err => { console.error(`Failed to load metadata for ${file}`, err); return null; })
+                    );
+                    let metadata = (await Promise.all(fetchPromises)).filter(Boolean);
+                    
+                    // Sort based on biblical order
+                    metadata.sort(compareScriptures);
+                    
+                    listElement.innerHTML = metadata.map(sermon => 
+                        `<li data-file="${sermon.file}">${sermon.title}</li>`
+                    ).join('');
+                    
+                    return metadata; // Return sorted metadata
+                };
+
+                try {
+                    const [sortedMogelijke, sortedDaadwerkelijke] = await Promise.all([
+                        populateList(mogelijkFiles, mogelijkePrekenList),
+                        populateList(daadwerkelijkeFiles, daadwerkelijkePrekenList)
+                    ]);
+
+                    // 4. Load default sermon from the sorted list
+                    const defaultSermon = sortedDaadwerkelijke.length > 0 ? sortedDaadwerkelijke[0] : (sortedMogelijke.length > 0 ? sortedMogelijke[0] : null);
+                    
+                    if (defaultSermon) {
+                        loadSermon(defaultSermon.file);
+                    } else {
+                        sermonTitle.textContent = "Geen preken gevonden";
+                    }
+                } catch(error) {
+                    console.error("Could not initialize sermon lists:", error);
+                    sermonTitle.textContent = "Fout";
+                    sermonText.textContent = "Kon de prekenlijsten niet initialiseren.";
+                }
+            }
+
+            initialize();
+        });
+    </script>
+</body>
+</html>
